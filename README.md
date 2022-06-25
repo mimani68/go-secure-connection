@@ -7,14 +7,36 @@
 #### Print dry-run certificate-request
 
 ```bash
-openssl req -new -newkey rsa:2048 -nodes -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=domain.com" -addext "subjectAltName = DNS:domain.com" -text -noout
+openssl req -new \
+    -newkey rsa:2048 \
+    -nodes \
+    -x509 \
+    -subj "/C=US/ST=GD/L=SZ/O=Startup, Inc./CN=domain.com/emailAddress=info@dmoain.com" \
+    -addext "subjectAltName = DNS:domain.com" \
+    -text \
+    -noout
 ```
 
 #### Generate
 
+CSR first
+
 ```bash
-openssl req -new -newkey rsa:2048 -nodes -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=domain.com" -addext "subjectAltName = DNS:domain.com" -keyout domain.key -out domain.csr
-openssl x509 -req -in domain.csr -days 365 -signkey domain.key -out domain.crt
+openssl req -new \
+    -newkey rsa:2048 \
+    -nodes \
+    -subj "/C=US/ST=GD/L=SZ/O=Startup, Inc./CN=domain.com/emailAddress=info@dmoain.com" \
+    -addext "subjectAltName = DNS:domain.com, DNS:*.domain.com" \
+    -keyout domain.key \
+    -out domain.csr
+```
+.
+```bash
+openssl x509 -req \
+    -in domain.csr \
+    -days 365 \
+    -signkey domain.key \
+    -out domain.crt
 ```
 
 ### Generate certificate for `domain.com` signed with created CA
@@ -22,7 +44,11 @@ openssl x509 -req -in domain.csr -days 365 -signkey domain.key -out domain.crt
 Since this certificate is not signed by a trusted CA, we need to install it on our system and tweak its trust parameters as described in the same article.
 
 ```bash
-openssl x509 -req -in domain.csr -days 365 -CA domain.crt -CAkey domain.key -CAcreateserial -out domain.crt
+openssl x509 -req -CAcreateserial -days 365 \
+    -CA domain.crt \
+    -CAkey domain.key \
+    -out domain.crt \
+    -in domain.csr 
 ```
 
 ## Development 
